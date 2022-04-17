@@ -45,6 +45,7 @@ class FedAvgClientManager(FedAvgManager):
         self.round_idx += 1
         self.__train()
         if self.round_idx == self.num_rounds - 1:
+            print("finish and save model!")
             self.trainer.save_model()
             self.finish()
             self.is_finish = True

@@ -126,14 +126,20 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
         mse = diff.mean(dim=1)
         true_positive += (mse > threshold).sum()
         false_negative += (mse <= threshold).sum()
+    
+    accuracy = ((true_positive) + (true_negative)) \
+                / ((true_positive) + (true_negative) + (false_positive) + (false_negative))
+    precision = (true_positive) / ((true_positive) + (false_positive))
+    false_positive_rate = (false_positive) / ((false_positive) + (true_negative))
+    tpr = (true_positive) / ((true_positive) + (false_negative))
+    tnr = (true_negative) / ((true_negative) + (false_positive))
 
-    accuracy = torch.true_divide(((true_positive) + (true_negative)) \
-                , ((true_positive) + (true_negative) + (false_positive) + (false_negative)))
-    precision = torch.true_divide((true_positive) , ((true_positive) + (false_positive)))
-    false_positive_rate = torch.true_divide((false_positive) , ((false_positive) + (true_negative)))
-    tpr = torch.true_divide((true_positive) , ((true_positive) + (false_negative)))
-    tnr = torch.true_divide((true_negative) , ((true_negative) + (false_positive)))
-
+    # accuracy = torch.true_divide(((true_positive) + (true_negative)) \
+    #             , ((true_positive) + (true_negative) + (false_positive) + (false_negative)))
+    # precision = torch.true_divide((true_positive) , ((true_positive) + (false_positive)))
+    # false_positive_rate = torch.true_divide((false_positive) , ((false_positive) + (true_negative)))
+    # tpr = torch.true_divide((true_positive) , ((true_positive) + (false_negative)))
+    # tnr = torch.true_divide((true_negative) , ((true_negative) + (false_positive)))
 
     print(accuracy, false_positive_rate, tpr, tnr)
 

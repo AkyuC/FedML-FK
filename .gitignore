@@ -4,3 +4,4 @@ FedAvg/Data/g*
 FedAvg/Data/m*
 FedAvg/Data/b*
 FedAvg/Data/d*
+*model.ckpt*
