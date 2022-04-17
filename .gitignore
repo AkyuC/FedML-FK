@@ -1,3 +1,6 @@
 *__pycache__
 .vscode
-FedAvg/Data
+FedAvg/Data/g*
+FedAvg/Data/m*
+FedAvg/Data/b*
+FedAvg/Data/d*
