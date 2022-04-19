@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
-from FedAvgClientManager import FedAvgClientManager
-from Model.AutoEncoder import AutoEncoder
-from Trainer.AETrainer import AETrainer
+from FedAvg.FedAvgClient.FedAvgClientManager import FedAvgClientManager
+from Model.GRU import GRUNet
+from Trainer.GRUTrainer import GRUTrainer
 
 from DataPreprocessing.DataLoader import load_data
 
@@ -85,10 +85,10 @@ if __name__ == '__main__':
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.
     # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
-    model =  AutoEncoder()
+    model =  GRUNet()
 
     # start training    
-    trainer = AETrainer(model, args)
+    trainer = GRUTrainer(model, args)
 
     client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device)
     client_manager.run()
