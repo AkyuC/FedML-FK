@@ -1,7 +1,6 @@
 import logging
 import time
 import numpy as np
-from Utils.utils import transform_list_to_tensor, transform_tensor_to_list
 
 
 class FedAVGAggregator(object):

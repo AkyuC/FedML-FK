@@ -3,15 +3,14 @@ import sys
 
 import numpy as np
 import pandas as pd
-import torch
-
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
+def load_data(file:str):
+    return np.array(pd.read_csv(file))
 
-def load_data(file:str, batch_size:int):
-    train_data_iter = torch.utils.data.DataLoader(np.array(pd.read_csv(file)), batch_size=batch_size, shuffle=False, num_workers=0)
-    return train_data_iter
+def load_data_labels(file:str):
+    return np.array(pd.read_csv(file))
 
 
 if __name__ == "__main__":

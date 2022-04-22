@@ -5,12 +5,14 @@ import time
 
 import numpy as np
 import torch.nn
+from DIoT.DataPreprocessing.FeatureCluster import FeatureCluster
+from DIoT.ClientManager.DIoTClientManager import DIoTClientManager
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
-from FedAvg.FedAvgClient.FedAvgClientManager import FedAvgClientManager
+# from FedAvg.FedAvgClient.FedAvgClientManager import FedAvgClientManager
 from Model.GRU import GRUNet
 from Trainer.GRUTrainer import GRUTrainer
 
@@ -79,9 +81,14 @@ if __name__ == '__main__':
     device = torch.device("cpu")
 
     # load data
-    dataset = load_data(args.data_len, args.batch_size)
-    [train_data_num, train_data_iter] = dataset
+    id = "3.11"
+    ip = "192.168." + id
+    train_data = load_data("../Data/SYN DoS_pcap%s.csv" % id)
+    train_data_num = len(train_data)
 
+    k = 20
+    n_clusters = 100
+    kM = FeatureCluster(n_clusters, train_data)
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.
     # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
@@ -90,7 +97,7 @@ if __name__ == '__main__':
     # start training    
     trainer = GRUTrainer(model, args)
 
-    client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device)
+    client_manager = DIoTClientManager(args, args.client_id, trainer, train_data, train_data_num, k, kM, n_clusters, device)
     client_manager.run()
     client_manager.start_training()
 

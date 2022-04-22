@@ -1,20 +1,19 @@
-import argparse
+import logging
 import os
 import sys
+import argparse
 import time
-
 import numpy as np
-import torch.nn
+import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
-from FedAvgClientManager import FedAvgClientManager
+from FedAvgServerManager.FedAvgAggregator import FedAVGAggregator
+from FedAvgServerManager.FedAvgServerManager import FedAVGServerManager
 from Model.AutoEncoder import AutoEncoder
 from Trainer.AETrainer import AETrainer
-
-from DataPreprocessing.DataLoader import load_data
 
 
 def add_args(parser):
@@ -26,7 +25,7 @@ def add_args(parser):
     parser.add_argument('--model', type=str, default='lr', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--client_id', type=int, default=1, metavar='NN',
+    parser.add_argument('--server_id', type=int, default=0, metavar='NN',
                         help='id of server')
     
     parser.add_argument('--server_ip', type=str, default="192.168.10.188",
@@ -40,9 +39,6 @@ def add_args(parser):
 
     parser.add_argument('--client_num_per_round', type=int, default=1, metavar='NN',
                         help='number of workers')
-
-    parser.add_argument('--data_len', type=int, default=5000, metavar='N',
-                        help='the length of data using to trian (default: 5000)')
 
     parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
@@ -70,29 +66,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args = add_args(parser)
 
-    # Set the random seed. The np.random seed determines the dataset partition.
-    # The torch_manual_seed determines the initial weight.
-    # We fix these two, so that we can reproduce the result.
+    device_id_to_client_id_dict = dict()
+
+    logging.info(args)
+
+    # Set the random seed.
     np.random.seed(0)
     torch.manual_seed(10)
 
     device = torch.device("cpu")
 
-    # load data
-    dataset = load_data(args.data_len, args.batch_size)
-    [train_data_num, train_data_iter] = dataset
+    # create model
+    model = AutoEncoder()
+    model_trainer = AETrainer(model)
 
-    # create model.
-    # Note if the model is DNN (e.g., ResNet), the training will be very slow.
-    # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
-    model =  AutoEncoder()
+    aggregator = FedAVGAggregator(args, args.client_num_per_round, device, model_trainer)
 
-    # start training    
-    trainer = AETrainer(model, args)
+    size = args.client_num_per_round + 1
+    server_manager = FedAVGServerManager(args, aggregator, args.server_id, args.client_num_per_round, 
+                                         args.server_ip, args.server_port)
+    server_manager.run()
 
-    client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device)
-    client_manager.run()
-    client_manager.start_training()
-
-    while(client_manager.is_finish is False):
+    while(server_manager.is_finish is False):
         time.sleep(5)

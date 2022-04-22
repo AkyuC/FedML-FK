@@ -7,6 +7,7 @@ import numpy as np
 
 def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_label:str="", file_save_label:str=""):
     # port_dict = dict()
+    len_set = set()
     # read raw packets
     f_file_raw = open(file_raw, 'rb')
     try:
@@ -70,6 +71,7 @@ def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_la
             c3 = 2
         # c4 packeet length
         c4 = ip.len
+        len_set.add(c4)
         # c5 TCP flags
         c5 = transf_data.flags
         # c6 encapsulated protocol types
@@ -111,6 +113,8 @@ def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_la
     f_file_raw.close()
 
     # a = sorted(port_dict)
+    # print(len_set)
+    # print(len(len_set))
 
     # save feature data to file
     # name=["c1", "c2," "c3", "c4", "c5", "c6", "c7"]

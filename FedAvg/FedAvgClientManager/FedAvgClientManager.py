@@ -1,8 +1,8 @@
 import logging
 
-from Utils.FedAvgManager import FedAvgManager
-from Utils.FedAvgMessage import FedAvgMessage
-from Utils.utils import transform_list_to_tensor, transform_tensor_to_list
+from FedAvg.Utils.FedAvgManager import FedAvgManager
+from FedAvg.Utils.FedAvgMessage import FedAvgMessage
+from FedAvg.Utils.utils import transform_list_to_tensor, transform_tensor_to_list
 
 from ComManager.BaseComManager.Message import Message
 
