@@ -8,8 +8,8 @@ from ComManager.BaseComManager.Message import Message
 
 
 class FedAvgClientManager(FedAvgManager):
-    def __init__(self, args, id, trainer, train_data_iter, train_data_num, device):
-        super().__init__(args, id=id)
+    def __init__(self, args, id, trainer, train_data_iter, train_data_num, device, HOST="192.168.10.188", PORT=1883, topic="fediot"):
+        super().__init__(args, id=id, HOST=HOST, PORT=PORT, topic=topic)
         self.trainer = trainer
         self.device = device
         self.train_data_iter = train_data_iter

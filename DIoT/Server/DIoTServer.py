@@ -9,14 +9,6 @@ import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/FedAvgClient")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/FedAvgServer")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/DataPreprocessing")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/Utils")))
-sys.path
-# sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/")))
-# sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../FedAvg/")))
 
 from FedAvg.FedAvgServerManager.FedAvgAggregator import FedAVGAggregator
 from FedAvg.FedAvgServerManager.FedAvgServerManager import FedAVGServerManager
@@ -62,7 +54,7 @@ def add_args(parser):
     parser.add_argument('--epochs', type=int, default=1, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--comm_round', type=int, default=100,
+    parser.add_argument('--comm_round', type=int, default=30,
                         help='how many round of communications we shoud use')
 
     args = parser.parse_args()
@@ -92,7 +84,7 @@ if __name__ == '__main__':
 
     size = args.client_num_per_round + 1
     server_manager = FedAVGServerManager(args, aggregator, args.server_id, args.client_num_per_round, 
-                                         args.server_ip, args.server_port)
+                                         args.server_ip, args.server_port, topic="DIoT")
     server_manager.run()
 
     while(server_manager.is_finish is False):

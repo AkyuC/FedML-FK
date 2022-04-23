@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     size = args.client_num_per_round + 1
     server_manager = FedAVGServerManager(args, aggregator, args.server_id, args.client_num_per_round, 
-                                         args.server_ip, args.server_port)
+                                         args.server_ip, args.server_port, topic="fediot")
     server_manager.run()
 
     while(server_manager.is_finish is False):

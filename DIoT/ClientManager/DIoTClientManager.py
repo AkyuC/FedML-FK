@@ -8,17 +8,14 @@ from ComManager.BaseComManager.Message import Message
 
 
 class DIoTClientManager(FedAvgManager):
-    def __init__(self, args, id, trainer, train_data, train_data_num, k, kM, n_clusters, device):
-        super().__init__(args, id=id)
+    def __init__(self, args, id, trainer, train_data, train_data_num, device, topic="DIoT"):
+        super().__init__(args, id=id, topic=topic)
         self.trainer = trainer
         self.device = device
         self.train_data = train_data
         self.train_data_num = train_data_num
         self.num_rounds = args.comm_round
         self.round_idx = 0
-        self.k = k
-        self.kM = kM
-        self.n_clusters = n_clusters
         self.is_finish = False
 
     def run(self):
@@ -41,7 +38,7 @@ class DIoTClientManager(FedAvgManager):
         self.__train()
 
     def handle_message_receive_model_from_server(self, msg_params):
-        print("handle_message_receive_model_from_server.")
+        print("handle_message_receive_model_from_server, round_idx = {}".format(self.round_idx))
         model_params = msg_params.get(FedAvgMessage.MSG_ARG_KEY_MODEL_PARAMS)
         model_params = transform_list_to_tensor(model_params)
         self.trainer.set_model_params(model_params)
@@ -61,6 +58,6 @@ class DIoTClientManager(FedAvgManager):
         self.send_message(message)
 
     def __train(self):
-        weights = self.trainer.train(self.train_data, self.device, self.k, self.kM, self.n_clusters, self.args)
+        weights = self.trainer.train(self.train_data, self.device, self.args)
         weights = transform_tensor_to_list(weights)
         self.send_model_to_server(0, weights, self.train_data_num)

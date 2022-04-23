@@ -4,19 +4,20 @@ import sys
 import time
 
 import numpy as np
+from sklearn.cluster import KMeans
 import torch.nn
-from DIoT.DataPreprocessing.FeatureCluster import FeatureCluster
-from DIoT.ClientManager.DIoTClientManager import DIoTClientManager
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
+from DIoT.DataPreprocessing.FeatureCluster import FeatureCluster
+from DIoT.ClientManager.DIoTClientManager import DIoTClientManager
 # from FedAvg.FedAvgClient.FedAvgClientManager import FedAvgClientManager
 from Model.GRU import GRUNet
 from Trainer.GRUTrainer import GRUTrainer
 
-from DataPreprocessing.DataLoader import load_data
+from DataPreprocessing.DataLoader import data_simple, load_data
 
 
 def add_args(parser):
@@ -60,7 +61,7 @@ def add_args(parser):
     parser.add_argument('--epochs', type=int, default=1, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--comm_round', type=int, default=100,
+    parser.add_argument('--comm_round', type=int, default=30,
                         help='how many round of communications we shoud use')
 
     args = parser.parse_args()
@@ -84,11 +85,15 @@ if __name__ == '__main__':
     id = "3.11"
     ip = "192.168." + id
     train_data = load_data("../Data/SYN DoS_pcap%s.csv" % id)
-    train_data_num = len(train_data)
 
     k = 20
     n_clusters = 100
-    kM = FeatureCluster(n_clusters, train_data)
+    len_clusters = 10000
+    train_data_num = 5000
+    kM:KMeans = FeatureCluster(n_clusters, train_data[0:len_clusters])
+    # 取序号为 10000 到 15000 的数据包进行训练
+    train_data = kM.fit(train_data[len_clusters:len_clusters + train_data_num])
+    train_data = data_simple(train_data.labels_.tolist(), k, n_clusters)
     # create model.
     # Note if the model is DNN (e.g., ResNet), the training will be very slow.
     # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
@@ -97,7 +102,7 @@ if __name__ == '__main__':
     # start training    
     trainer = GRUTrainer(model, args)
 
-    client_manager = DIoTClientManager(args, args.client_id, trainer, train_data, train_data_num, k, kM, n_clusters, device)
+    client_manager = DIoTClientManager(args, args.client_id, trainer, train_data, train_data_num, device, topic="DIoT")
     client_manager.run()
     client_manager.start_training()
 

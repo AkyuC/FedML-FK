@@ -90,7 +90,7 @@ if __name__ == '__main__':
     # start training    
     trainer = AETrainer(model, args)
 
-    client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device)
+    client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device, topic="fediot")
     client_manager.run()
     client_manager.start_training()
 

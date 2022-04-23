@@ -1,6 +1,5 @@
-from sklearn import cluster
 from sklearn.cluster import KMeans
-from DataLoader import load_data
+from DIoT.DataPreprocessing.DataLoader import load_data
 
 def FeatureCluster(n_clusters, data, max_iter=300, tol=0.0001):
     return KMeans(n_clusters=n_clusters, max_iter=max_iter, tol=tol).fit(data)
