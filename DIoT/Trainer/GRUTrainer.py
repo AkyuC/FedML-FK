@@ -1,11 +1,14 @@
 import logging
+from statistics import mean
 import torch
-
+import torch.nn.functional as func
+import matplotlib.pyplot as plt
 
 class GRUTrainer():
     def __init__(self, model, args=None):
         self.model = model
         self.args = args
+        self.out = torch.nn.Softmax(dim=0)
 
     def get_model_params(self):
         return self.model.cpu().state_dict()
@@ -19,20 +22,24 @@ class GRUTrainer():
         # model.double()
         model.train()
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-        loss_func = torch.nn.CrossEntropyLoss()     # use cross-entropy loss because of outputing probability
         s, s_predict = train_data
+        loss_list = []
         # model training
         for idx, inp in enumerate(s):
-            # inp = inp.to(device)
             optimizer.zero_grad()
-            p = model(torch.Tensor([[inp]]))
-            a = torch.LongTensor([s_predict[idx]])
-            # print(p)
-            # print(a)
-            loss = loss_func(p, a)
+            inp = torch.Tensor([inp]).to(device)
+            p = model(inp)
+            p = self.out(p)
+            a = torch.LongTensor(s_predict[idx])
+            # use cross-entropy loss because of outputing probability
+            loss = func.cross_entropy(p, a)
+            loss_list.append(loss.item())
+            # print(loss.item())
             loss.backward()
             optimizer.step()
-
+        print("mean loss: " + str(mean(loss_list)))
+        # plt.plot(loss_list)
+        # plt.show()
         return self.get_model_params()
 
     def save_model(self):

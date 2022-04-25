@@ -13,11 +13,9 @@ class GRUNet(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden_dim, output_dim),
         )
-        self.out = nn.Softmax(dim=0)     # 经过softmax之后，反向传播是否会有误差？
 
     def forward(self, x):
         r_out, h_n = self.gru(x, None)
-        fc_out = self.fc(r_out[:, -1, :])     # only use the last step data
-        out = self.out(fc_out)
+        out = self.fc(r_out)     # only use the last step data
         # print(out.shape)
-        return out
+        return out[0,:,:]
