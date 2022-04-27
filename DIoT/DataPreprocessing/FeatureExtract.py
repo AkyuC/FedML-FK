@@ -3,7 +3,7 @@ import dpkt
 import socket
 import pandas as pd
 import numpy as np
-
+import torch
 
 def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_label:str="", file_save_label:str=""):
     # port_dict = dict()
@@ -107,7 +107,8 @@ def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_la
 
         feature = [c1, c2, c3, c4, c5, c6, c7]
         feature_list.append(feature)
-        feature_label_list.append(file_label_list[row_index][1])
+        if(file_label != ""):
+            feature_label_list.append(file_label_list[row_index][1])
 
     # file close    
     f_file_raw.close()
@@ -118,23 +119,25 @@ def feature_extract(iot_ip_set:set, file_raw:str, file_save_feature:str, file_la
 
     # save feature data to file
     # name=["c1", "c2," "c3", "c4", "c5", "c6", "c7"]
-    feature_list = np.array(feature_list)
+    feature_list_tmp = np.array(feature_list)
     min = np.array(feature_list).min(axis=0)
     max = np.array(feature_list).max(axis=0)
-    feature_list = (feature_list - min) / (max - min)
+    feature_list = (feature_list_tmp - min) / (max - min)
+
     # print("feature_list_len: "+str(len(feature_list)))
     # print("feature_label_list: "+str(len(feature_list)))
     pd.DataFrame(data=feature_list).to_csv(file_save_feature, index=False)
-    pd.DataFrame(data=feature_label_list).to_csv(file_save_label, index=False)
+    if(file_label != ""):
+        pd.DataFrame(data=feature_label_list).to_csv(file_save_label, index=False)
 
 if __name__ == '__main__':
     iot_ip_set = set()
-    id = "3.11"
+    id = "1.165"
     ip = "192.168." + id
     iot_ip_set.add(ip)
-    file_raw = "../Data/SYN DoS_pcap.pcap"
-    file_save_feature = "../Data/SYN DoS_pcap%s.csv" % id
-    file_label = "../Data/SYN DoS_labels.csv"
-    file_save_label = "../Data/SYN DoS_labels%s.csv" % id
-    feature_extract(iot_ip_set, file_raw, file_save_feature, file_label, file_save_label)
+    file_raw = "../Data/18_06_09_bengin.pcap"
+    file_save_feature = "../Data/18_06_09_bengin%s.csv" % id
+    # file_label = "../Data/SYN DoS_labels.csv"
+    # file_save_label = "../Data/SYN DoS_labels%s.csv" % id
+    feature_extract(iot_ip_set, file_raw, file_save_feature)
     print("finished!")

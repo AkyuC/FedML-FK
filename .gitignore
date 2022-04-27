@@ -7,3 +7,4 @@ FedAvg/Data/d*
 *.ckpt
 *.csv
 *.pcap
+*kM

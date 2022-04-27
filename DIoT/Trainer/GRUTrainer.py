@@ -8,7 +8,7 @@ class GRUTrainer():
     def __init__(self, model, args=None):
         self.model = model
         self.args = args
-        self.out = torch.nn.Softmax(dim=0)
+        self.out = torch.nn.Softmax(dim=1)
 
     def get_model_params(self):
         return self.model.cpu().state_dict()
@@ -29,8 +29,8 @@ class GRUTrainer():
             optimizer.zero_grad()
             inp = torch.Tensor([inp]).to(device)
             p = model(inp)
-            p = self.out(p)
-            a = torch.LongTensor(s_predict[idx])
+            p = self.out(p).to(device)
+            a = torch.LongTensor(s_predict[idx]).to(device)
             # use cross-entropy loss because of outputing probability
             loss = func.cross_entropy(p, a)
             loss_list.append(loss.item())

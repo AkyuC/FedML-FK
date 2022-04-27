@@ -1,4 +1,5 @@
 import argparse
+import pickle
 import os
 import sys
 import time
@@ -59,7 +60,7 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=1, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=5, metavar='EP',
                         help='how many epochs will be trained locally')
 
     parser.add_argument('--comm_round', type=int, default=30,
@@ -86,29 +87,33 @@ if __name__ == '__main__':
     ip = "192.168." + id
     train_data = load_data("../Data/SYN DoS_pcap%s.csv" % id)
 
-    # create model.
-    # Note if the model is DNN (e.g., ResNet), the training will be very slow.
-    # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
-    model =  GRUNet()
-
-    # start training    
-    trainer = GRUTrainer(model, args)
-
     print("Simple->")
     k = 20
     n_clusters = 100
     len_clusters = 10000
     train_data_num = 10000
+
+    # create model.
+    model =  GRUNet(k,n_clusters)
+
+    # start training    
+    trainer = GRUTrainer(model, args)
+
     kM:KMeans = FeatureCluster(n_clusters, train_data[0:len_clusters])
+    f = open("./kM",'wb+')
+    pickle.dump(kM,f)
+    f.close()
     train_data_iter = []
 
-    for i in range(70):
+    a = 10
+
+    for i in range(a):
         train_data_iter.append(data_simple(kM.fit(train_data[len_clusters:len_clusters + train_data_num]).labels_.tolist(), k, 64)) 
         len_clusters += 10000
 
     print("Training->")
-    for i in range(1000):
+    for i in range(args.epochs):
         print("epoch:" + str(i))
-        trainer.train(train_data_iter[i%70], device, args)
+        trainer.train(train_data_iter[i%a], device, args)
         
         
