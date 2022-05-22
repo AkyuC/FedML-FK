@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
-from FedAvgClientManager.FedAvgClientManager import FedAvgClientManager
+from FedAvgClientManager.FedAvgClientManager_CS import FedAvgClientManager
 from Model.AutoEncoder import AutoEncoder
 from Trainer.AETrainer import AETrainer
 

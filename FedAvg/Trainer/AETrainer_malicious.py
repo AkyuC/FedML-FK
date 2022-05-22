@@ -2,7 +2,7 @@ import logging
 import torch
 
 
-class AETrainer():
+class AETrainer_malicious():
     def __init__(self, model, args=None):
         self.model = model
         self.args = args
@@ -27,11 +27,12 @@ class AETrainer():
                 inp = inp.to(device)
                 optimizer.zero_grad()
                 decode = model(inp)
-                loss = loss_func(decode, inp)
+                # 梯度上升
+                loss = -loss_func(decode, inp)
                 loss.backward()
                 optimizer.step()
         return self.get_model_params()
 
     def save_model(self, round_idx):
-        torch.save(self.model.state_dict(), 'model_CS_round=' + str(round_idx) +'.ckpt')
+        torch.save(self.model.state_dict(), 'model_malicious_round=' + str(round_idx) +'.ckpt')
         return True

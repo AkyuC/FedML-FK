@@ -29,4 +29,8 @@ class FedAvgMessage(object):
     MSG_ARG_KEY_TEST_ERROR = "test_error"
     MSG_ARG_KEY_TEST_NUM = "test_num_sample"
 
+    MSG_ARG_KEY_GLOBAL_ACC = "global_acc" # 全局模型的测试精度
+    MSG_ARG_KEY_RANDOM_ACC = "random_acc" # 随机局部模型的测试精度
+    MSG_ARG_KEY_RANDOM_MODEL_PARAMS = "random_model_params" # 随机局部模型的参数
+
 

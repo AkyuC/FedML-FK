@@ -51,4 +51,5 @@ class ServerMqttCommManager(MqttCommManager):
         logging.info("topic = %s" % str(topic))
         payload = msg.to_json()
         self._client.publish(topic, payload=payload)
+        # self._client.publish(topic, payload=msg.to_json())
         logging.info("sent")

@@ -50,14 +50,16 @@ class FedAvgClientManager(FedAvgManager):
             self.finish()
             self.is_finish = True
 
-    def send_model_to_server(self, receive_id, weights, local_sample_num):
+    def send_model_to_server(self, receive_id, weights, local_sample_num, global_acc, random_acc):
         print("send_model_to_server.")
         message = Message(FedAvgMessage.MSG_TYPE_C2S_SEND_MODEL_TO_SERVER, self.get_sender_id(), receive_id)
         message.add_params(FedAvgMessage.MSG_ARG_KEY_MODEL_PARAMS, weights)
         message.add_params(FedAvgMessage.MSG_ARG_KEY_NUM_SAMPLES, local_sample_num)
+        message.add_params(FedAvgMessage.MSG_ARG_KEY_GLOBAL_ACC, global_acc)
+        message.add_params(FedAvgMessage.MSG_ARG_KEY_RANDOM_ACC, random_acc)
         self.send_message(message)
 
     def __train(self):
         weights = self.trainer.train(self.train_data_iter, self.device, self.args)
         weights = transform_tensor_to_list(weights)
-        self.send_model_to_server(0, weights, self.train_data_num)
+        self.send_model_to_server(0, weights, self.train_data_num, global_acc, random_acc)

@@ -1,9 +1,6 @@
 *__pycache__
 .vscode
-FedAvg/Data/g*
-FedAvg/Data/m*
-FedAvg/Data/b*
-FedAvg/Data/d*
+FedAvg/Data/*
 *.ckpt
 *.csv
 *.pcap

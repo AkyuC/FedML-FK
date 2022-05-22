@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
 from FedAvgClientManager.FedAvgClientManager import FedAvgClientManager
 from Model.AutoEncoder import AutoEncoder
-from Trainer.AETrainer import AETrainer
+from Trainer.AETrainer_malicious import AETrainer_malicious
 
 from DataPreprocessing.DataLoader import load_data
 
@@ -50,7 +50,7 @@ def add_args(parser):
     parser.add_argument('--client_optimizer', type=str, default='adam',
                         help='SGD with momentum; adam')
 
-    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 0.001)')
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     model =  AutoEncoder()
 
     # start training    
-    trainer = AETrainer(model, args)
+    trainer = AETrainer_malicious(model, args)
 
     client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device, topic="fediot")
     client_manager.run()

@@ -26,7 +26,7 @@ def add_args(parser):
     parser.add_argument('--client_id', type=int, default=1, metavar='NN',
                         help='id of server')
     
-    parser.add_argument('--server_ip', type=str, default="192.168.10.188",
+    parser.add_argument('--server_ip', type=str, default="192.168.10.186",
                         help='IP address of the FedAvg server')
     
     parser.add_argument('--server_port', type=int, default=1883,

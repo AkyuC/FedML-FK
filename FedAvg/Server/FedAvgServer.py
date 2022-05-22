@@ -28,16 +28,16 @@ def add_args(parser):
     parser.add_argument('--server_id', type=int, default=0, metavar='NN',
                         help='id of server')
     
-    parser.add_argument('--server_ip', type=str, default="192.168.10.188",
+    parser.add_argument('--server_ip', type=str, default="192.168.10.186",
                         help='IP address of the FedAvg server')
     
     parser.add_argument('--server_port', type=int, default=1883,
                         help='MQTT port of the FedAvg server')
 
-    parser.add_argument('--client_num_in_total', type=int, default=1, metavar='NN',
+    parser.add_argument('--client_num_in_total', type=int, default=7, metavar='NN',
                         help='number of workers in a distributed cluster')
 
-    parser.add_argument('--client_num_per_round', type=int, default=1, metavar='NN',
+    parser.add_argument('--client_num_per_round', type=int, default=7, metavar='NN',
                         help='number of workers')
 
     parser.add_argument('--batch_size', type=int, default=64, metavar='N',
@@ -51,10 +51,10 @@ def add_args(parser):
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
 
-    parser.add_argument('--epochs', type=int, default=1, metavar='EP',
+    parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--comm_round', type=int, default=100,
+    parser.add_argument('--comm_round', type=int, default=6,
                         help='how many round of communications we shoud use')
 
     args = parser.parse_args()
