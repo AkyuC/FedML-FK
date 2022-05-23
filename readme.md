@@ -33,6 +33,11 @@
 | 局部训练回合数量 epochs |    10    |
 </div>
 
+实验①结果：
+![Acc](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc.png)
+
+---
+
 对比实验②：添加2个恶意客户端，7个客户端都参与每回合训练。
 
 由于恶意客户端的存在，训练相同回合数之后，模型测试精度应该比实验①差。
@@ -52,6 +57,11 @@
 | 局部训练回合数量 epochs |    10    |
 </div>
 
+实验②结果：
+![Acc_malicious](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_malicious.png)
+
+---
+
 对比实验③：添加2个恶意客户端，7个客户端都参与每回合训练。
 
 由于客户端选择机制，恶意客户端的影响将被削弱，模型测试精度应该比实验②好。
@@ -70,3 +80,6 @@
 | 通信回合数量 comm_round |        6         |
 | 局部训练回合数量 epochs |        10        |
 </div>
+
+实验③结果：
+![Acc_CS](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_CS.png)
