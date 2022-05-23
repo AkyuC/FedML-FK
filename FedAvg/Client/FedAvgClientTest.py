@@ -26,7 +26,7 @@ def add_args(parser):
     parser.add_argument('--client_id', type=int, default=1, metavar='NN',
                         help='id of server')
     
-    parser.add_argument('--server_ip', type=str, default="192.168.10.186",
+    parser.add_argument('--server_ip', type=str, default="192.168.10.188",
                         help='IP address of the FedAvg server')
     
     parser.add_argument('--server_port', type=int, default=1883,
@@ -61,15 +61,29 @@ def add_args(parser):
     args = parser.parse_args()
     return args
 
-def load_data(batch_size=64):
+def load_data(batch_size=64, client_id=1):
     train_data_local_dict = dict()
     test_data_local_dict = dict()
     th_local_dict = dict()
-    min = np.loadtxt('../Data/min.txt')
-    max = np.loadtxt('../Data/max.txt')
 
-    benign_data = pd.read_csv('../Data/benign_traffic.csv')
+    client_data = ['Danmini_Doorbell', 'Ecobee_Thermostat', 
+        'Ennio_Doorbell', 'Philips_B120N10_Baby_Monitor',
+        'Provision_PT_737E_Security_Camera', 'Provision_PT_838_Security_Camera', 
+        'Samsung_SNH_1011_N_Webcam', 'SimpleHome_XCS7_1002_WHT_Security_Camera',
+        'SimpleHome_XCS7_1003_WHT_Security_Camera']
+        
+    benign_data = pd.read_csv('../Data/UCI-MLR/'+client_data[client_id-1]+'/benign_traffic.csv')
     benign_data = np.array(benign_data)
+
+    try:
+        min = np.loadtxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/min.txt')
+        max = np.loadtxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/max.txt')
+    except IOError:
+        np.savetxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/min.txt', np.array(benign_data).min(axis=0))
+        np.savetxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/max.txt', np.array(benign_data).max(axis=0))
+        min = np.loadtxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/min.txt')
+        max = np.loadtxt('../Data/UCI-MLR/'+client_data[client_id-1]+'/max.txt')
+
     benign_test = benign_data[-5000:]
     benign_test[np.isnan(benign_test)] = 0
     benign_test = (benign_test - min) / (max - min)
@@ -77,12 +91,16 @@ def load_data(batch_size=64):
     benign_th = benign_data[5000:8000]
     benign_th[np.isnan(benign_th)] = 0
     benign_th = (benign_th - min) / (max - min)
-    
-    g_attack_data_list = [os.path.join('../Data/', 'gafgyt_attacks', f)
-                            for f in os.listdir(os.path.join('../Data/', 'gafgyt_attacks'))]
-    m_attack_data_list = [os.path.join('../Data/', 'mirai_attacks', f)
-                            for f in os.listdir(os.path.join('../Data/', 'mirai_attacks'))]
-    attack_data_list = g_attack_data_list + m_attack_data_list
+
+    g_attack_data_list = [os.path.join('../Data/UCI-MLR/', client_data[client_id-1], 'gafgyt_attacks', f)
+                              for f in os.listdir(os.path.join('../Data/UCI-MLR/', client_data[client_id-1], 'gafgyt_attacks'))]
+    if client_data[client_id-1] == 'Ennio_Doorbell' or client_data[client_id-1] == 'Samsung_SNH_1011_N_Webcam':
+        attack_data_list = g_attack_data_list
+        benign_test = benign_test[-2500:]
+    else:
+        m_attack_data_list = [os.path.join('../Data/UCI-MLR/', client_data[client_id-1], 'mirai_attacks', f)
+                                for f in os.listdir(os.path.join('../Data/UCI-MLR/', client_data[client_id-1], 'mirai_attacks'))]
+        attack_data_list = g_attack_data_list + m_attack_data_list
 
     attack_data = pd.concat([pd.read_csv(f)[-500:] for f in attack_data_list])
     attack_data = np.array(attack_data)
@@ -110,6 +128,7 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
 
     thres_func = nn.MSELoss(reduction='none')
 
+    # print("test benign data")
     train_data = train_data_local_dict
     for idx, inp in enumerate(train_data):
         # if idx >= round(len(train_data) * 2 / 3):
@@ -119,6 +138,7 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
             false_positive += (mse > threshold).sum()
             true_negative += (mse <= threshold).sum()
 
+    # print("test attack data")
     test_data = test_data_local_dict
     for idx, inp in enumerate(test_data):
         inp = inp.to(device)
@@ -127,19 +147,20 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
         true_positive += (mse > threshold).sum()
         false_negative += (mse <= threshold).sum()
     
-    accuracy = ((true_positive) + (true_negative)) \
-                / ((true_positive) + (true_negative) + (false_positive) + (false_negative))
-    precision = (true_positive) / ((true_positive) + (false_positive))
-    false_positive_rate = (false_positive) / ((false_positive) + (true_negative))
-    tpr = (true_positive) / ((true_positive) + (false_negative))
-    tnr = (true_negative) / ((true_negative) + (false_positive))
+    # print("calculate acc")
+    # accuracy = ((true_positive) + (true_negative)) \
+    #             / ((true_positive) + (true_negative) + (false_positive) + (false_negative))
+    # precision = (true_positive) / ((true_positive) + (false_positive))
+    # false_positive_rate = (false_positive) / ((false_positive) + (true_negative))
+    # tpr = (true_positive) / ((true_positive) + (false_negative))
+    # tnr = (true_negative) / ((true_negative) + (false_positive))
 
-    # accuracy = torch.true_divide(((true_positive) + (true_negative)) \
-    #             , ((true_positive) + (true_negative) + (false_positive) + (false_negative)))
-    # precision = torch.true_divide((true_positive) , ((true_positive) + (false_positive)))
-    # false_positive_rate = torch.true_divide((false_positive) , ((false_positive) + (true_negative)))
-    # tpr = torch.true_divide((true_positive) , ((true_positive) + (false_negative)))
-    # tnr = torch.true_divide((true_negative) , ((true_negative) + (false_positive)))
+    accuracy = torch.true_divide(((true_positive) + (true_negative)) \
+                , ((true_positive) + (true_negative) + (false_positive) + (false_negative)))
+    precision = torch.true_divide((true_positive) , ((true_positive) + (false_positive)))
+    false_positive_rate = torch.true_divide((false_positive) , ((false_positive) + (true_negative)))
+    tpr = torch.true_divide((true_positive) , ((true_positive) + (false_negative)))
+    tnr = torch.true_divide((true_negative) , ((true_negative) + (false_positive)))
 
     print(accuracy, false_positive_rate, tpr, tnr)
 
@@ -165,7 +186,7 @@ if __name__ == "__main__":
     device = torch.device("cpu")
 
     # load data
-    train_data_local_dict, test_data_local_dict, th_local_dict = load_data(args.batch_size)
+    train_data_local_dict, test_data_local_dict, th_local_dict = load_data(args.batch_size, args.client_id)
 
     # create model
     model = load_model()

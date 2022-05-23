@@ -3,10 +3,11 @@ from FedAvg.Utils.FedAvgManager import FedAvgManager
 from FedAvg.Utils.FedAvgMessage import FedAvgMessage
 from FedAvg.Utils.utils import transform_list_to_tensor
 import copy
+import numpy as np
 
 
 class FedAVGServerManager(FedAvgManager):
-    def __init__(self, args, aggregator, id=0, client_num=0, HOST="192.168.10.186", PORT=1883, topic="fediot"):
+    def __init__(self, args, aggregator, id=0, client_num=0, HOST="192.168.10.188", PORT=1883, topic="fediot"):
         super().__init__(args, id=id, client_num=client_num, HOST=HOST, PORT=PORT, topic=topic)
         self.args = args
         self.aggregator = aggregator
@@ -37,14 +38,17 @@ class FedAVGServerManager(FedAvgManager):
         local_sample_number = msg_params.get(FedAvgMessage.MSG_ARG_KEY_NUM_SAMPLES)
         global_acc = msg_params.get(FedAvgMessage.MSG_ARG_KEY_GLOBAL_ACC)
         random_acc = msg_params.get(FedAvgMessage.MSG_ARG_KEY_RANDOM_ACC)
+        # print('global_acc:', global_acc)
+        # print('random_acc:', random_acc)
 
         # record every client model params
         self.aggregator.add_local_trained_result(sender_id - 1, model_params, local_sample_number, global_acc, random_acc)
         
         # 判断收到全部客户端的更新之后，开始模型聚合
         if self.aggregator.check_whether_all_receive():
+            # print("aggregate start")
             global_model_params = self.aggregator.aggregate()
-
+            # print("aggregate finish")
             # start the next round
             self.round_idx += 1
             # 每轮通信过后都保存一次模型
@@ -60,13 +64,19 @@ class FedAVGServerManager(FedAvgManager):
                 return
             client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
                                                                  self.args.client_num_per_round)
+            # print(client_indexes)
             
             self.aggregator.random_matching(self.round_idx, self.args.client_num_in_total)
+            # print(self.aggregator.model_owners)
             for receiver_id in range(1, self.client_num+1):
                 # self.send_message_sync_model_to_client(receiver_id, global_model_params,
                 #                                        client_indexes[receiver_id - 1])
+                random_model_params = self.aggregator.model_dict[self.aggregator.model_owners[receiver_id-1]]
+                for k in random_model_params.keys():
+                    random_model_params[k] = np.array(random_model_params[k]).tolist()
+                # print(random_model_params)
                 self.send_message_two_models_to_client(receiver_id, global_model_params, 
-                    self.aggregator.model_dict[self.aggregator.model_owners[receiver_id-1]], client_indexes[receiver_id-1])
+                                                    random_model_params, client_indexes[receiver_id-1])
 
 
     def send_message_init_config(self, receive_id, global_model_params, client_index):

@@ -1,19 +1,20 @@
-import logging
+import argparse
 import os
 import sys
-import argparse
 import time
+
 import numpy as np
-import torch
+import torch.nn
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "../")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.getcwd(), "")))
 
-from FedAvgServerManager.FedAvgAggregator import FedAVGAggregator
-from FedAvgServerManager.FedAvgServerManager import FedAVGServerManager
+from FedAvgClientManager.FedAvgClientManager_CS import FedAvgClientManager
 from Model.AutoEncoder import AutoEncoder
-from Trainer.AETrainer import AETrainer
+from Trainer.AETrainer_malicious import AETrainer_malicious
+
+from DataPreprocessing.DataLoader import load_data
 
 
 def add_args(parser):
@@ -25,7 +26,7 @@ def add_args(parser):
     parser.add_argument('--model', type=str, default='lr', metavar='N',
                         help='neural network used in training')
 
-    parser.add_argument('--server_id', type=int, default=0, metavar='NN',
+    parser.add_argument('--client_id', type=int, default=1, metavar='NN',
                         help='id of server')
     
     parser.add_argument('--server_ip', type=str, default="192.168.10.188",
@@ -34,11 +35,14 @@ def add_args(parser):
     parser.add_argument('--server_port', type=int, default=1883,
                         help='MQTT port of the FedAvg server')
 
-    parser.add_argument('--client_num_in_total', type=int, default=7, metavar='NN',
+    parser.add_argument('--client_num_in_total', type=int, default=1, metavar='NN',
                         help='number of workers in a distributed cluster')
 
-    parser.add_argument('--client_num_per_round', type=int, default=7, metavar='NN',
+    parser.add_argument('--client_num_per_round', type=int, default=1, metavar='NN',
                         help='number of workers')
+
+    parser.add_argument('--data_len', type=int, default=5000, metavar='N',
+                        help='the length of data using to trian (default: 5000)')
 
     parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                         help='input batch size for training (default: 64)')
@@ -46,7 +50,7 @@ def add_args(parser):
     parser.add_argument('--client_optimizer', type=str, default='adam',
                         help='SGD with momentum; adam')
 
-    parser.add_argument('--lr', type=float, default=0.0001, metavar='LR',
+    parser.add_argument('--lr', type=float, default=0.001, metavar='LR',
                         help='learning rate (default: 0.001)')
 
     parser.add_argument('--wd', help='weight decay parameter;', type=float, default=0.001)
@@ -66,26 +70,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args = add_args(parser)
 
-    device_id_to_client_id_dict = dict()
-
-    logging.info(args)
-
-    # Set the random seed.
+    # Set the random seed. The np.random seed determines the dataset partition.
+    # The torch_manual_seed determines the initial weight.
+    # We fix these two, so that we can reproduce the result.
     np.random.seed(0)
     torch.manual_seed(10)
 
     device = torch.device("cpu")
 
-    # create model
-    model = AutoEncoder()
-    model_trainer = AETrainer(model)
+    # load data
+    dataset = load_data(args.data_len, args.batch_size, args.client_id)
+    [train_data_num, train_data_iter] = dataset
 
-    aggregator = FedAVGAggregator(args, args.client_num_per_round, device, model_trainer)
+    # create model.
+    # Note if the model is DNN (e.g., ResNet), the training will be very slow.
+    # In this case, please use our FedML distributed version (./fedml_experiments/distributed_fedavg)
+    model =  AutoEncoder()
 
-    size = args.client_num_per_round + 1
-    server_manager = FedAVGServerManager(args, aggregator, args.server_id, args.client_num_per_round, 
-                                         args.server_ip, args.server_port, topic="fediot")
-    server_manager.run()
+    # start training    
+    trainer = AETrainer_malicious(model, args)
 
-    while(server_manager.is_finish is False):
+    client_manager = FedAvgClientManager(args, args.client_id, trainer, train_data_iter, train_data_num, device, topic="fediot")
+    client_manager.run()
+    client_manager.start_training()
+
+    while(client_manager.is_finish is False):
         time.sleep(5)

@@ -10,7 +10,7 @@ from ComManager.Mqtt.ServerMqttComManager import ServerMqttCommManager
 
 
 class FedAvgManager(Observer):
-    def __init__(self, args, id=0, client_num=0, HOST="192.168.10.186", PORT=1883, topic="fediot"):
+    def __init__(self, args, id=0, client_num=0, HOST="192.168.10.188", PORT=1883, topic="fediot"):
         self.args = args
         self.id = id
         if id == 0:

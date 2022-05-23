@@ -28,7 +28,7 @@ def add_args(parser):
     parser.add_argument('--client_id', type=int, default=1, metavar='NN',
                         help='id of server')
     
-    parser.add_argument('--server_ip', type=str, default="192.168.10.186",
+    parser.add_argument('--server_ip', type=str, default="192.168.10.188",
                         help='IP address of the FedAvg server')
     
     parser.add_argument('--server_port', type=int, default=1883,
@@ -130,7 +130,7 @@ def load_data(batch_size=64):
 
 def load_model(round_id):
     model = AutoEncoder()
-    model.load_state_dict(torch.load('model_malicious_round='+str(round_id)+'.ckpt', map_location=lambda storage, loc: storage))
+    model.load_state_dict(torch.load('model_CS_round='+str(round_id)+'.ckpt', map_location=lambda storage, loc: storage))
     return model
 
 def test(args, model, device, train_data_local_dict, test_data_local_dict, threshold):
@@ -248,6 +248,6 @@ if __name__ == "__main__":
     plt.xlabel('episode')
     plt.ylabel('Acc')
     episodes = np.arange(1, args.comm_round+1, 1)
-    plt.plot(episodes, accuracy_list, label=r'Acc_malicious', c='b', linewidth='2')
+    plt.plot(episodes, accuracy_list, label=r'Acc_CS', c='b', linewidth='2')
     plt.legend(loc='best')
-    plt.savefig('Acc_malicious.png', format='png', dpi=300, pad_inches = 0.1, bbox_inches="tight")
+    plt.savefig('Acc_CS.png', format='png', dpi=300, pad_inches = 0.1, bbox_inches="tight")

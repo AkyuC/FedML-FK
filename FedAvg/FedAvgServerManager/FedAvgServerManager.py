@@ -6,7 +6,7 @@ import copy
 
 
 class FedAVGServerManager(FedAvgManager):
-    def __init__(self, args, aggregator, id=0, client_num=0, HOST="192.168.10.186", PORT=1883, topic="fediot"):
+    def __init__(self, args, aggregator, id=0, client_num=0, HOST="192.168.10.188", PORT=1883, topic="fediot"):
         super().__init__(args, id=id, client_num=client_num, HOST=HOST, PORT=PORT, topic=topic)
         self.args = args
         self.aggregator = aggregator

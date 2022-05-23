@@ -2,6 +2,7 @@ import logging
 import time
 import numpy as np
 import math
+import copy
 
 class FedAVGAggregator(object):
 
@@ -17,6 +18,7 @@ class FedAVGAggregator(object):
         self.global_acc = dict()
         self.random_acc = dict()
         self.model_owners = dict()
+        self.score = dict()
 
         for idx in range(self.worker_num):
             self.flag_client_model_uploaded_dict[idx] = False
@@ -32,17 +34,24 @@ class FedAVGAggregator(object):
         self.model_dict[index] = model_params
         self.sample_num_dict[index] = sample_num
         self.flag_client_model_uploaded_dict[index] = True
-        self.global_acc_old[index] = self.global_acc[index]
+        if index in self.global_acc.keys():
+            self.global_acc_old[index] = self.global_acc[index]
+        else:
+            self.global_acc_old[index] = 0
         self.global_acc[index] = global_acc
         self.random_acc[index] = random_acc
+        # print("add local result")
 
     def check_whether_all_receive(self):
         logging.debug("worker_num = {}".format(self.worker_num))
+        # print(self.worker_num)
         for idx in range(self.worker_num):
             if not self.flag_client_model_uploaded_dict[idx]:
+                # print("False")
                 return False
         for idx in range(self.worker_num):
             self.flag_client_model_uploaded_dict[idx] = False
+        # print("True")
         return True
 
     def aggregate(self):
@@ -57,22 +66,26 @@ class FedAVGAggregator(object):
         logging.info("aggregate len of self.model_dict[idx] = " + str(len(self.model_dict)))
 
         # 计算客户端的信誉分数
-        score = dict()
-        # 首个通信回合，初始化信誉分数都为0.1
-        if len(self.global_acc_old) == 0:
+        score = copy.deepcopy(self.score)
+        # 前两个通信回合，初始化信誉分数都为0.1
+        if 0 in self.global_acc_old.values():
             for index in range(self.worker_num):
                 score[index] = 0.1
         else:
+            # print("model_owners", self.model_owners)
+            # print("random_acc", self.random_acc)
+            # print("global_acc", self.global_acc)
+            # print("global_acc_old", self.global_acc_old)
             for i in range(len(self.model_owners)):
                 # 软更新系数为0.2
                 score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - 0.2) + 0.2 * \
                     (1.0 * (self.random_acc[i] - self.global_acc[i]) + 1.0 * (self.random_acc[i] - self.global_acc_old[i]))
-        
+        print("score", score)
+        self.score = copy.deepcopy(score)
         for i in range(self.worker_num):
             local_sample_number, local_model_params = model_list[i]
             # 超参数，底数为4
             score[i] = local_sample_number * math.pow(4, score[i])
-
         (num0, averaged_params) = model_list[0]
         for k in averaged_params.keys():
             for i in range(0, len(model_list)):
@@ -108,7 +121,9 @@ class FedAVGAggregator(object):
     def random_matching(self, round_idx, client_num_in_total):
         client_indexes = [client_index for client_index in range(client_num_in_total)]
         np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
-        model_owners = np.random.shuffle(client_indexes)
-        logging.info("model_owners = %s" % str(model_owners))
+        np.random.shuffle(client_indexes)
+        # print(client_indexes)
+        logging.info("model_owners = %s" % str(client_indexes))
         for index in range(client_num_in_total):
-            self.model_owners[index] = model_owners[index]
+            self.model_owners[index] = client_indexes[index]
+        # print(self.model_owners)
