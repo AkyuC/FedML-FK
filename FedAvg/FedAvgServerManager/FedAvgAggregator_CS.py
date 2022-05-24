@@ -79,7 +79,8 @@ class FedAVGAggregator(object):
             # print("global_acc_old", self.global_acc_old)
             for i in range(len(self.model_owners)):
                 # 软更新系数为0.5
-                score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - 0.5) + 0.5 * \
+                tau = 0.5
+                score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - tau) + tau * \
                     (1.0 * (self.random_acc[i] - self.global_acc[i]) + 1.0 * (self.random_acc[i] - self.global_acc_old[i]))
         print("score", score)
         self.score = copy.deepcopy(score)
