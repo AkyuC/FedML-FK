@@ -59,7 +59,7 @@ class Message(object):
         return self.msg_params
 
     def to_json(self):
-        # print('params:',self.msg_params.keys())
+        # print('model_params:',self.msg_params['model_params']['dec.6.bias'])
         json_string = json.dumps(self.msg_params)
         print("json string size = " + str(sys.getsizeof(json_string)))
         return json_string

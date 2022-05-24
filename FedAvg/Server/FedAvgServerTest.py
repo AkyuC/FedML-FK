@@ -180,8 +180,8 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
     return accuracy, precision, false_positive_rate
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.INFO,
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
+    # logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                         datefmt='%a, %d %b %Y %H:%M:%S')
 

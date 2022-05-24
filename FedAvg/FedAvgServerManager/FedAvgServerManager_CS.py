@@ -64,10 +64,10 @@ class FedAVGServerManager(FedAvgManager):
                 return
             client_indexes = self.aggregator.client_sampling(self.round_idx, self.args.client_num_in_total,
                                                                  self.args.client_num_per_round)
-            # print(client_indexes)
+            # print("client_indexes: ", client_indexes)
             
             self.aggregator.random_matching(self.round_idx, self.args.client_num_in_total)
-            # print(self.aggregator.model_owners)
+            # print("model_owners: ", self.aggregator.model_owners)
             for receiver_id in range(1, self.client_num+1):
                 # self.send_message_sync_model_to_client(receiver_id, global_model_params,
                 #                                        client_indexes[receiver_id - 1])
