@@ -3,6 +3,7 @@ import time
 import numpy as np
 import math
 import copy
+import decimal
 
 class FedAVGAggregator(object):
 
@@ -77,8 +78,8 @@ class FedAVGAggregator(object):
             # print("global_acc", self.global_acc)
             # print("global_acc_old", self.global_acc_old)
             for i in range(len(self.model_owners)):
-                # 软更新系数为0.2
-                score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - 0.2) + 0.2 * \
+                # 软更新系数为0.5
+                score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - 0.5) + 0.5 * \
                     (1.0 * (self.random_acc[i] - self.global_acc[i]) + 1.0 * (self.random_acc[i] - self.global_acc_old[i]))
         print("score", score)
         self.score = copy.deepcopy(score)
@@ -86,18 +87,34 @@ class FedAVGAggregator(object):
             local_sample_number, local_model_params = model_list[i]
             # 超参数，底数为4
             score[i] = local_sample_number * math.pow(4, score[i])
+        
+        print("weight: ", end="")
+        for i in range(len(score)):
+            # print(decimal.Decimal(str(score[i])) / decimal.Decimal(str(sum(score.values()))))
+            print(float(decimal.Decimal(str(score[i])) / decimal.Decimal(str(sum(score.values())))), end=" ")
+        print()
+
         (num0, averaged_params) = model_list[0]
         for k in averaged_params.keys():
             for i in range(0, len(model_list)):
-                # local_sample_number, local_model_params = model_list[i]
+                local_sample_number, local_model_params = model_list[i]
                 # w = local_sample_number / training_num
-                # 基于信誉分数加权
-                w = score[i] / sum(score.values())
+                # 基于信誉分数加权，高精度计算
+                w = float(decimal.Decimal(str(score[i])) / decimal.Decimal(str(sum(score.values()))))
                 if i == 0:
+                    # print("i", i, "k", k)
+                    # print(np.array(local_model_params[k]))
+                    # print(w)
                     averaged_params[k] = np.array(local_model_params[k]) * w
+                    # print(averaged_params[k])
                 else:
+                    # print("i", i, "k", k)
+                    # print(np.array(local_model_params[k]))
+                    # print(w)
                     averaged_params[k] += np.array(local_model_params[k]) * w
+                    # print(averaged_params[k])
             averaged_params[k] = averaged_params[k].tolist()
+        # print(averaged_params[k])
 
         end_time = time.time()
         logging.info("aggregate time cost: %d" % (end_time - start_time))
@@ -121,9 +138,12 @@ class FedAVGAggregator(object):
     def random_matching(self, round_idx, client_num_in_total):
         client_indexes = [client_index for client_index in range(client_num_in_total)]
         np.random.seed(round_idx)  # make sure for each comparison, we are selecting the same clients each round
-        np.random.shuffle(client_indexes)
-        # print(client_indexes)
+        # np.random.shuffle(client_indexes)
+        # 为避免元素位置不发生改变，随机指定偏移量
+        offset = np.random.randint(1, client_num_in_total-1)
+        client_indexes = client_indexes[offset:] + client_indexes[:offset]
+        # print("client_indexes", client_indexes)
         logging.info("model_owners = %s" % str(client_indexes))
         for index in range(client_num_in_total):
             self.model_owners[index] = client_indexes[index]
-        # print(self.model_owners)
+        print("model_owners", self.model_owners)

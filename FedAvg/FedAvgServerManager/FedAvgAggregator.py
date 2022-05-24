@@ -1,7 +1,7 @@
 import logging
 import time
 import numpy as np
-
+import decimal
 
 class FedAVGAggregator(object):
 
@@ -49,16 +49,27 @@ class FedAVGAggregator(object):
 
         logging.info("aggregate len of self.model_dict[idx] = " + str(len(self.model_dict)))
 
+        print("weight: ", end="")
+        for i in range(0, len(model_list)):
+            local_sample_number, local_model_params = model_list[i]
+        #     print(local_sample_number / training_num)
+        #     print(decimal.Decimal(str(local_sample_number)) / decimal.Decimal(str(training_num)))
+            print(float((decimal.Decimal(str(local_sample_number)) / decimal.Decimal(str(training_num)))), end=" ")
+        print()
+        
         (num0, averaged_params) = model_list[0]
         for k in averaged_params.keys():
             for i in range(0, len(model_list)):
                 local_sample_number, local_model_params = model_list[i]
-                w = local_sample_number / training_num
+                # w = local_sample_number / training_num
+                # 高精度计算
+                w = float(decimal.Decimal(str(local_sample_number)) / decimal.Decimal(str(training_num)))
                 if i == 0:
                     averaged_params[k] = np.array(local_model_params[k]) * w
                 else:
                     averaged_params[k] += np.array(local_model_params[k]) * w
             averaged_params[k] = averaged_params[k].tolist()
+        # print(averaged_params[k])
 
         end_time = time.time()
         logging.info("aggregate time cost: %d" % (end_time - start_time))
