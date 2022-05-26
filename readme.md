@@ -40,7 +40,7 @@
 
 对比实验②：添加1个恶意客户端，6个客户端都参与每回合训练。
 
-由于恶意客户端的存在，训练相同回合数之后，模型测试精度应该比实验①差。
+预计结果：由于恶意客户端的存在，训练相同回合数之后，模型测试精度应该比实验①差。
 
 <div align='center'>
 
@@ -68,7 +68,7 @@
 ![](http://latex.codecogs.com/svg.latex?score=(1-\\tau)\\cdot(acc-new_{acc})+\\tau\\cdot(acc-old_{acc}))
 ，评估客户端的数据质量，从而进行客户端选择。
 
-由于客户端选择机制，模型测试精度应该比实验①好。
+预计结果：由于客户端选择机制，模型测试精度应该比实验①好。
 
 <div align='center'>
 
@@ -86,6 +86,7 @@
 </div>
 
 实验③结果：全局模型收敛之后，由于局部训练无法再提升模型精度，导致信誉分数评估不再准确，因此全局模型精度略有下降。
+
 To do: 该方案并未明显体现**模型优化**的效果，考虑接下来尝试**偏向于选择“局部损失值较大”的客户端参与训练**的方案。
 ![Acc_CS](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_CS.png)
 
@@ -97,7 +98,7 @@ To do: 该方案并未明显体现**模型优化**的效果，考虑接下来尝
 ![](http://latex.codecogs.com/svg.latex?score=(1-\\tau)\\cdot(acc-new_{acc})+\\tau\\cdot(acc-old_{acc}))
 ，评估客户端的数据质量，从而进行客户端选择。
 
-由于客户端选择机制，模型测试精度应该比实验②好。
+预计结果：由于客户端选择机制，模型测试精度应该比实验②好。
 
 <div align='center'>
 
