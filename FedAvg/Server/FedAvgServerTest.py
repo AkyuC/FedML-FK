@@ -57,7 +57,7 @@ def add_args(parser):
     parser.add_argument('--epochs', type=int, default=10, metavar='EP',
                         help='how many epochs will be trained locally')
 
-    parser.add_argument('--comm_round', type=int, default=6,
+    parser.add_argument('--comm_round', type=int, default=15,
                         help='how many round of communications we shoud use')
 
     args = parser.parse_args()
@@ -67,10 +67,6 @@ def load_data(batch_size=64):
     train_data_local_dict = dict()
     test_data_local_dict = dict()
     th_local_dict = dict()
-
-    train_data_list = list()
-    test_data_list = list()
-    th_list = list()
 
     client_data = ['Danmini_Doorbell', 'Ecobee_Thermostat', 
         'Ennio_Doorbell', 'Philips_B120N10_Baby_Monitor',
@@ -116,21 +112,17 @@ def load_data(batch_size=64):
         attack_data = np.array(attack_data)
         attack_data[np.isnan(attack_data)] = 0
         attack_data = (attack_data - min) / (max - min)
-
-        train_data_list.append(benign_test)
-        test_data_list.append(attack_data)
-        th_list.append(benign_th)
     
-    train_data_local_dict = torch.utils.data.DataLoader(np.concatenate(train_data_list), batch_size=batch_size, shuffle=False, num_workers=0)
-    test_data_local_dict = torch.utils.data.DataLoader(np.concatenate(test_data_list), batch_size=batch_size, shuffle=False, num_workers=0)
-    th_local_dict = torch.utils.data.DataLoader(np.concatenate(th_list), batch_size=batch_size, shuffle=False, num_workers=0)
+        train_data_local_dict[i] = torch.utils.data.DataLoader(benign_test, batch_size=batch_size, shuffle=False, num_workers=0)
+        test_data_local_dict[i] = torch.utils.data.DataLoader(attack_data, batch_size=batch_size, shuffle=False, num_workers=0)
+        th_local_dict[i] = torch.utils.data.DataLoader(benign_th, batch_size=batch_size, shuffle=False, num_workers=0)
 
     return train_data_local_dict, test_data_local_dict, th_local_dict
 
 
 def load_model(round_id):
     model = AutoEncoder()
-    model.load_state_dict(torch.load('model_CS_round='+str(round_id)+'.ckpt', map_location=lambda storage, loc: storage))
+    model.load_state_dict(torch.load('model_round='+str(round_id)+'.ckpt', map_location=lambda storage, loc: storage))
     return model
 
 def test(args, model, device, train_data_local_dict, test_data_local_dict, threshold):
@@ -143,9 +135,10 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
     thres_func = nn.MSELoss(reduction='none')
 
     # 良性数据测试集
-    train_data = train_data_local_dict
-    for idx, inp in enumerate(train_data):
-        # if idx >= round(len(train_data) * 2 / 3):
+    for client_index in train_data_local_dict.keys():
+        train_data = train_data_local_dict[client_index]
+        for idx, inp in enumerate(train_data):
+            # if idx >= round(len(train_data) * 2 / 3):
             inp = inp.to(device)
             diff = thres_func(model(inp), inp)
             mse = diff.mean(dim=1)
@@ -153,13 +146,14 @@ def test(args, model, device, train_data_local_dict, test_data_local_dict, thres
             true_negative += (mse <= threshold).sum()
 
     # 攻击数据测试集
-    test_data = test_data_local_dict
-    for idx, inp in enumerate(test_data):
-        inp = inp.to(device)
-        diff = thres_func(model(inp), inp)
-        mse = diff.mean(dim=1)
-        true_positive += (mse > threshold).sum()
-        false_negative += (mse <= threshold).sum()
+    for client_index in test_data_local_dict.keys():
+        test_data = test_data_local_dict[client_index]
+        for idx, inp in enumerate(test_data):
+            inp = inp.to(device)
+            diff = thres_func(model(inp), inp)
+            mse = diff.mean(dim=1)
+            true_positive += (mse > threshold).sum()
+            false_negative += (mse <= threshold).sum()
     
     # accuracy = ((true_positive) + (true_negative)) \
     #             / ((true_positive) + (true_negative) + (false_positive) + (false_negative))
@@ -211,11 +205,12 @@ if __name__ == "__main__":
 
         mse = list()
         thres_func = nn.MSELoss(reduction='none')
-        train_data = th_local_dict
-        for idx, inp in enumerate(train_data):
-            inp = inp.to(device)
-            diff = thres_func(model(inp), inp)
-            mse.append(diff)
+        for client_index in th_local_dict.keys():
+            train_data = th_local_dict[client_index]
+            for idx, inp in enumerate(train_data):
+                inp = inp.to(device)
+                diff = thres_func(model(inp), inp)
+                mse.append(diff)
 
         mse_results_global = torch.cat(mse).mean(dim=1)
         
@@ -248,6 +243,6 @@ if __name__ == "__main__":
     plt.xlabel('episode')
     plt.ylabel('Acc')
     episodes = np.arange(1, args.comm_round+1, 1)
-    plt.plot(episodes, accuracy_list, label=r'Acc_CS', c='b', linewidth='2')
+    plt.plot(episodes, accuracy_list, label=r'Acc', c='b', linewidth='2')
     plt.legend(loc='best')
-    plt.savefig('Acc_CS.png', format='png', dpi=300, pad_inches = 0.1, bbox_inches="tight")
+    plt.savefig('Acc.png', format='png', dpi=300, pad_inches = 0.1, bbox_inches="tight")

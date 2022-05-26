@@ -82,6 +82,8 @@ class FedAVGAggregator(object):
                 tau = 0.5
                 score[self.model_owners[i]] = score[self.model_owners[i]] * (1 - tau) + tau * \
                     (1.0 * (self.random_acc[i] - self.global_acc[i]) + 1.0 * (self.random_acc[i] - self.global_acc_old[i]))
+                print("client", self.model_owners[i], "random_acc=", self.random_acc[i], "global_acc=", self.global_acc[i], \
+                        "global_acc_old=", self.global_acc_old[i])
         print("score", score)
         self.score = copy.deepcopy(score)
         for i in range(self.worker_num):
