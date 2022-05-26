@@ -34,6 +34,7 @@
 </div>
 
 实验①结果：全局模型的测试精度一直在上升，直到10次通信后基本收敛。
+
 ![Acc](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc.png)
 
 ---
@@ -58,6 +59,7 @@
 </div>
 
 实验②结果：由于无法识别恶意客户端，导致全局模型的测试精度一直在下降。
+
 ![Acc_malicious](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_malicious.png)
 
 ---
@@ -88,6 +90,7 @@
 实验③结果：全局模型收敛之后，由于局部训练无法再提升模型精度，导致信誉分数评估不再准确，因此全局模型精度略有下降。
 
 To do: 该方案并未明显体现**模型优化**的效果，考虑接下来尝试**偏向于选择“局部损失值较大”的客户端参与训练**的方案。
+
 ![Acc_CS](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_CS.png)
 
 ---
@@ -117,4 +120,5 @@ To do: 该方案并未明显体现**模型优化**的效果，考虑接下来尝
 </div>
 
 实验④结果：效果并不理想，可能是由于全局模型聚合了恶意客户端上传的局部更新，导致信誉分数评估失效（无法体现局部模型和聚合后全局模型之间的差距），因此无法有效剔除恶意客户端的影响。
+
 ![Acc_malicious_CS](https://github.com/AkyuC/FedML-FK/blob/client_selection/FedAvg/Server/Acc_malicious_CS.png)
